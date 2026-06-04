@@ -1,0 +1,68 @@
+% Cover letter for IEEE Signal Processing Letters submission
+% Compile: pdflatex cover_letter
+\documentclass[11pt]{letter}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2cm]{geometry}
+\usepackage{parskip}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\hypersetup{hidelinks}
+\setlength{\parskip}{4pt}
+
+\signature{Do Phuc Hao}
+\address{Do Phuc Hao\\ Faculty of Information Technology\\ Da Nang Architecture University\\
+Da Nang, Vietnam\\ haodp@dau.edu.vn}
+
+\begin{document}
+
+\begin{letter}{Editor-in-Chief\\ IEEE Signal Processing Letters}
+
+\opening{Dear Editor-in-Chief,}
+
+I am pleased to submit the manuscript titled ``Geometric Equivariance as an
+Inductive Bias for Orientation-Robust Direction Finding in Non-Terrestrial
+Networks'' for consideration as a Letter in IEEE Signal Processing Letters.
+
+The work studies how a known geometric symmetry of a sensor array, the rotation of
+the array, should enter a learned direction-of-arrival estimator. On a uniform
+circular array, azimuth rotation reduces exactly to a cyclic shift of the sensor
+index, the cyclic group $C_M$, which makes the symmetry explicit and lets us compare
+three options: ignore it, augment for it with random cyclic shifts, or build it into
+a $C_M$-equivariant circular-convolution network. The main findings are concise and,
+to my knowledge, new for radio-frequency array processing:
+
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt,topsep=2pt]
+\item Built-in equivariance and cyclic-shift augmentation both reach the classical
+accuracy on the clean single-source task, but equivariance is more data efficient,
+more stable across seeds, and lighter. This controlled equivariance-versus-augmentation
+comparison for direction finding is not reported in a literature that obtains
+robustness by training over perturbations.
+\item On a two-source single-snapshot task the learned models resolve sources about
+twice as close as the classical Bartlett beamformer, and the equivariant model alone
+resolves the hardest separation, with an order of magnitude fewer parameters than the
+augmented baseline. This is where learning exceeds, rather than inherits, classical
+behavior.
+\end{itemize}
+
+The manuscript fits the scope and concise format of Signal Processing Letters: a
+clear, reproducible signal-processing result motivated by non-terrestrial networks,
+where antenna arrays sit on platforms whose orientation varies. Prior deep-learning
+direction-of-arrival methods use linear arrays and obtain robustness by data
+augmentation rather than by an architectural symmetry constraint, and the only
+genuinely equivariant direction-finding networks are acoustic, so the cyclic-group
+equivariant formulation on a circular array, the equivariance-versus-augmentation
+comparison, and the orientation-generalization study are not pre-empted by existing
+work.
+
+I confirm that this manuscript is original, has not been published before, and is not
+under consideration for publication elsewhere. There is a single author and there are
+no conflicts of interest to declare. All numbers and figures are produced by
+self-contained Python scripts that are released for full reproducibility.
+
+Thank you for your time and consideration. I look forward to the reviewers' feedback.
+
+\closing{Sincerely,}
+
+\end{letter}
+\end{document}

@@ -1,0 +1,21 @@
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.nav
+*.snm
+*.bbl
+*.blg
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+paper/*.pdf
+
+# Python
+__pycache__/
+*.pyc
+
+# misc
+*.DS_Store
+run_*.log

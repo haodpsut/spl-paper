@@ -20,11 +20,12 @@ circular-convolution network.
   equivariance is more data efficient, far more stable across seeds, and uses the
   fewest parameters. A classical Bartlett beamformer matches all learned models on
   this clean task.
-- **Two sources (beating the classical limit).** On a single-snapshot two-source
-  task, the learned models resolve sources about twice as close as the beamformer
-  (from ~15 deg vs ~30 deg). The equivariant model alone resolves the hardest
-  separation (12 deg) and uses an order of magnitude fewer parameters than the
-  augmented baseline, while its in- and out-of-distribution curves coincide.
+- **Two sources (robustness to coherence).** On a multi-snapshot two-source task,
+  MUSIC resolves uncorrelated sources best, but it collapses for coherent sources
+  (rank-deficient signal covariance), where the equivariant model, deconvolving the
+  coherence-robust conventional spectrum, still resolves down to about half the
+  beamwidth (0.94 at 15 deg vs MUSIC 0.47). The learned model complements the
+  subspace method rather than displacing it.
 
 ## Repository layout
 
@@ -32,8 +33,9 @@ circular-convolution network.
 experiment/
   doa_equivariance.py   # single-source: MLP / Transformer / +aug / C_M-equivariant / Bartlett
                         #   studies: data efficiency (vs training size), SNR sweep; 5 seeds
-  doa_resolution.py     # two-source single-snapshot resolution; equivariant deconvolver vs
-                        #   MLP+aug vs Bartlett; resolution probability vs separation; 3 seeds
+  doa_resolution_ms.py  # two-source, multi-snapshot: equivariant deconvolver vs MUSIC vs
+                        #   Bartlett; uncorrelated and coherent sources; 3 seeds (PAPER)
+  doa_resolution.py     # earlier single-snapshot variant (superseded by _ms)
   doa_coupling.py       # robustness under circulant mutual coupling (preserves C_M)
   results/              # results JSON + preview figures produced by the scripts
 paper/
@@ -48,7 +50,7 @@ Requirements: `python>=3.10`, `torch`, `numpy`, `matplotlib` (CPU is enough).
 ```bash
 cd experiment
 python doa_equivariance.py     # single-source studies  -> results/results_full.json
-python doa_resolution.py       # two-source resolution   -> results/results_resolution.json
+python doa_resolution_ms.py    # two-source vs MUSIC      -> results/results_resolution_ms.json
 python doa_coupling.py         # mutual-coupling robustness check
 ```
 
@@ -66,10 +68,10 @@ pdflatex cover_letter
 
 ## Notes and honest scope
 
-The two-source study is single-snapshot, equal-power, narrowband, on a planar UCA;
-a multi-snapshot setting would admit a subspace baseline such as MUSIC. The
-equivariant advantage over augmentation in the two-source case is confined to the
-hardest separation and to parameter count. See the paper for the full discussion.
+The two-source study is multi-snapshot (T=10), equal-power, narrowband, on a planar
+UCA, and compares against MUSIC. The two-source value is specifically robustness to
+source coherence: MUSIC remains the method of choice for uncorrelated sources, and we
+do not claim to displace it there. See the paper for the full discussion.
 
 ## Acknowledgment
 

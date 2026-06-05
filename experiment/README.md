@@ -47,10 +47,35 @@ matching the coupling-aware oracle beamformer. Note: reciprocal (physical) coupl
 does NOT bias single-source DOA, so this is a robustness check, not a regime where
 learning beats classical. Multi-source resolution is the place to probe the latter.
 
-## Headline finding
+## Two-source resolution vs MUSIC (`doa_resolution_ms.py`)
 
-Augmentation and built-in equivariance both reach the classical accuracy at large
-data, but the equivariant model is more data efficient (1.88 deg vs 2.90 deg OOD at
-N=200), far more stable across seeds (std ~0.01 deg vs the augmented Transformer's
->30 deg, including a non-converging seed), and uses the fewest parameters (10.8k).
-The classical beamformer matches all learned models on this clean single-source task.
+The paper's two-source experiment. From `T=10` snapshots we form the sample
+covariance and compare the `C_M`-equivariant deconvolver of the conventional
+(Bartlett) spectrum against **MUSIC** and Bartlett, for **uncorrelated** and
+**coherent** sources, over 3 seeds, on OOD azimuths.
+
+- **Uncorrelated sources:** MUSIC is best (resolves from ~12 deg); the learned model
+  trails it at the smallest separations.
+- **Coherent sources:** the signal covariance is rank deficient, so MUSIC collapses
+  to the beamformer (0.47 at 15 deg), while the equivariant deconvolver, operating on
+  the coherence-robust quadratic spectrum, still resolves (0.94 at 15 deg, 0.73 at
+  12 deg). This is the regime where learning beats the subspace method.
+
+```bash
+python doa_resolution_ms.py     # -> results/results_resolution_ms.json + fig_resolution_ms.png
+```
+
+(`doa_resolution.py` is an earlier single-snapshot variant, superseded by the
+multi-snapshot version above for the paper.)
+
+## Headline findings
+
+1. **Single source (equivariance vs augmentation).** Augmentation and built-in
+   equivariance both reach the classical accuracy at large data, but the equivariant
+   model is more data efficient (1.88 deg vs 2.90 deg OOD at N=200), far more stable
+   across seeds (std ~0.01 deg vs the augmented Transformer's >30 deg, including a
+   non-converging seed), and uses the fewest parameters (10.8k). The beamformer
+   matches all learned models on this clean single-source task.
+2. **Two sources (robustness to coherence).** MUSIC is best for uncorrelated sources
+   but collapses for coherent sources, where the equivariant model resolves down to
+   about half the beamwidth.

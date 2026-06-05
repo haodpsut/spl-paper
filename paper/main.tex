@@ -23,6 +23,7 @@
 \definecolor{cTrans}{HTML}{1F5C8B}
 \definecolor{cEquiv}{HTML}{C8881C}
 \definecolor{cBart}{HTML}{2E7D5B}
+\definecolor{cMusic}{HTML}{7B3FA0}
 \definecolor{cFail}{HTML}{B23A3A}
 
 \newcommand{\E}[1]{\mathbf{e}_{#1}}
@@ -58,14 +59,14 @@ the classical accuracy at large training sets, but equivariance is more data
 efficient at small sets, markedly more stable across seeds, with augmented
 non-equivariant models, the Transformer in particular, sometimes failing to
 converge, and it uses the fewest parameters. A classical beamformer matches all
-learned models on the clean single-source task, but on a two-source single-snapshot
-task both learned models resolve separations of about half the classical beamwidth,
-and the equivariant model alone resolves the hardest case, with an order of magnitude
-fewer parameters than the augmented baseline. We frame the result as a controlled
-account of how a geometric symmetry should enter a learned NTN array model, and as a
-proof of concept for the machine-learning pillar of a broader program that uses GA as
-a unifying substrate across the quantum and learning layers of NTN and SAGIN. Code is
-released for reproducibility.
+learned models on the clean single-source task; on a multi-snapshot two-source task
+MUSIC resolves uncorrelated sources best, but it collapses for coherent sources,
+where the equivariant model, deconvolving the coherence-robust conventional spectrum,
+resolves separations down to about half the beamwidth. We frame the result as a
+controlled account of how a geometric symmetry should enter a learned NTN array
+model, and as a proof of concept for the machine-learning pillar of a broader program
+that uses GA as a unifying substrate across the quantum and learning layers of NTN
+and SAGIN. Code is released for reproducibility.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -73,56 +74,6 @@ Geometric algebra, equivariant learning, direction of arrival, non-terrestrial
 networks, SAGIN, inductive bias.
 \end{IEEEkeywords}
 
-% ---- Main flow / overview figure (spans both columns) ----
-\begin{figure*}[t]
-\centering
-\resizebox{\textwidth}{!}{%
-\begin{tikzpicture}[font=\small, >=Stealth, node distance=8mm,
-  stage/.style={rounded corners=3pt, draw=gray!55, line width=0.8pt, align=center,
-                fill=gray!5, minimum height=2.0cm, text width=3.0cm, inner sep=4pt},
-  ar/.style={-{Stealth[length=3mm]}, line width=1pt, gray!70}]
-
-  % Stage A: array with rotation icon
-  \node[stage] (a)
-     {\textbf{Orientation-varying array}\\[2pt]
-      UCA on an NTN / SAGIN platform whose 3D pose changes};
-  % small UCA glyph inside-ish (above the label)
-  \begin{scope}[shift={($(a.north)+(0,0.05)$)}]
-  \end{scope}
-
-  % Stage B: symmetry
-  \node[stage, right=of a, draw=cEquiv, fill=cEquiv!8] (b)
-     {\textbf{Geometric symmetry}\\[2pt]
-      azimuth rotation $\equiv$ cyclic shift of sensors, group $C_M$};
-
-  % Stage C: three ways to handle the symmetry
-  \node[stage, right=of b, text width=3.4cm] (c)
-     {\textbf{Three options}\\[3pt]
-      \textit{ignore}: MLP, Transformer\\
-      \textit{augment}: random cyclic shift\\
-      \textit{build in}: $C_M$-equivariant};
-
-  % Stage D: protocol
-  \node[stage, right=of c] (d)
-     {\textbf{Protocol}\\[2pt]
-      train $[0,\pi)$, test OOD $[\pi,2\pi)$;\\ 5 seeds; data size and SNR sweeps};
-
-  % Stage E: outcome
-  \node[stage, right=of d, draw=cBart, fill=cBart!7, text width=3.3cm] (e)
-     {\textbf{Outcome}\\[3pt]
-      \textcolor{cFail}{ignore: fails OOD}\\[1pt]
-      augment: works, \textcolor{cFail}{unstable}\\[1pt]
-      \textcolor{cBart}{\textbf{equivariant: data efficient, stable, fewest params}}};
-
-  \draw[ar] (a)--(b); \draw[ar] (b)--(c); \draw[ar] (c)--(d); \draw[ar] (d)--(e);
-\end{tikzpicture}}
-\caption{Main flow of the study. The array orientation varies, so the task carries
-a known geometric symmetry: rotating the source azimuth equals a cyclic shift of
-the sensors (group $C_M$). We compare ignoring the symmetry, augmenting for it, and
-building it in. Augmentation closes most of the gap at large data, but built-in
-equivariance is more data efficient, more stable, and lighter.}
-\label{fig:flow}
-\end{figure*}
 
 % =====================================================================
 \section{Introduction}
@@ -155,7 +106,6 @@ substrate spanning two pillars of NTN and SAGIN: the quantum pillar, where a qub
 is a rotor and quantum gates are real multivector operations, and the
 machine-learning pillar, where Clifford and equivariant networks process geometric
 signals. The present experiment is a proof of concept for the second pillar only.
-Figure~\ref{fig:flow} summarizes the study.
 
 Our contributions are as follows.
 \begin{itemize}
@@ -171,10 +121,10 @@ training-set size and SNR.
 accuracy at large data, but equivariance is more data efficient, substantially more
 stable across seeds, and lighter, and we discuss honestly what this does and does
 not establish.
-\item We show, on a two-source single-snapshot task, that the learned models resolve
-sources about twice as close as the classical beamformer, the equivariant one most
-parameter-efficiently and alone at the hardest separation, which is where learning
-exceeds rather than inherits the classical behavior.
+\item We show, on a multi-snapshot two-source task, that where MUSIC, the subspace
+baseline, collapses on coherent sources, the equivariant model is robust to the
+coherence and resolves separations down to about half the beamwidth, while MUSIC
+remains best for uncorrelated sources.
 \end{itemize}
 
 % =====================================================================
@@ -389,63 +339,71 @@ this clean single-source task, at zero parameters. On this probe the learned mod
 inherit, rather than exceed, the classical behavior; the next subsection shows where
 they exceed it.
 
-\subsection{Two sources: beating the classical resolution limit}
+\subsection{Two sources: robustness to coherence}
 The single-source probe is robust enough that learning adds nothing over the
-beamformer. We therefore turn to the setting where classical beamforming is known to
-fail, namely resolving two closely spaced sources. We place two equal-power sources
-with a random relative phase at azimuths $\phi_c\pm\delta/2$, observe a single
-snapshot, and declare a separation $\delta$ resolved when both sources are estimated
-within $\delta/2$. Here the array radius is larger ($\kappa{=}8$, about half-wavelength
-element spacing), giving a usable beamwidth. The equivariant model is extended to a
-super-resolution form: it correlates the snapshot with the fine-grid steering
-dictionary, which is the beamformer response and shifts cyclically under rotation, so
-it stays $C_M$-equivariant, then circular convolutions deconvolve this response into
-sharp peaks, trained with a peak-weighted loss. The augmented MLP uses the same front
-end with fully connected layers.
+beamformer, so we turn to resolving two closely spaced sources. With several
+snapshots the right classical competitor is a subspace method, so we compare against
+MUSIC. From $T{=}10$ snapshots of two equal-power sources at $\phi_c\pm\delta/2$,
+either uncorrelated or fully coherent, we form the $M\times M$ sample covariance
+$\hat{R}$ and call a separation $\delta$ resolved when both sources are estimated
+within $\delta/2$. The array radius is larger here ($\kappa{=}8$, about
+half-wavelength spacing) for a usable beamwidth. The equivariant model deconvolves
+the conventional spectrum $a(\phi)^{\mathsf H}\hat{R}\,a(\phi)$, a quadratic form
+that is robust to source coherence and shifts cyclically under rotation, so the
+front end stays $C_M$-equivariant; circular convolutions then sharpen it into peaks.
+It is trained once over a range of separations and evaluated per separation on OOD
+azimuths.
 
-Figure \ref{fig:res} reports the probability of resolution against separation, on OOD
-azimuths and over three seeds. The classical beamformer needs about $30^\circ$ for
-reliable resolution and resolves only $46\%$ of $15^\circ$ pairs. Both learned models
-resolve almost perfectly from $15^\circ$, roughly half the classical limit, which is
-the sense in which learning here exceeds classical beamforming. The two learned
-models differ at the hardest separations and in size. At $12^\circ$ the equivariant
-model resolves $67\%$ of pairs against $10\%$ for the augmented MLP and the
-beamformer, although with high variance at this edge of resolvability, and it does so
-with $34.6$k parameters against the augmented MLP's $295.8$k, an order of magnitude
-fewer. Its in-distribution and out-of-distribution curves coincide, so the
-resolution transfers across orientations.
+Figure~\ref{fig:resms} reports the probability of resolution. For uncorrelated
+sources MUSIC is the strongest method, resolving from $12^\circ$, as expected of a
+subspace estimator with sufficient snapshots; the learned model trails it at the
+smallest separations. The picture inverts for coherent sources: the signal
+covariance is rank deficient, MUSIC's noise subspace is contaminated, and MUSIC
+collapses to the beamformer ($0.47$ at $15^\circ$), whereas the equivariant model
+resolves ($0.94$ at $15^\circ$ and $0.73$ at $12^\circ$). The learned model thus
+complements the subspace method: it does not displace MUSIC where MUSIC is strong,
+but it is robust to the source coherence, common in specular multipath, that defeats
+it. Its in- and out-of-distribution curves coincide.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\begin{tikzpicture}
-\begin{axis}[
-  width=\columnwidth, height=5.4cm,
-  xlabel={Source separation $\delta$ (deg)}, ylabel={Probability of resolution},
+\newcommand{\resaxis}[1]{%
+\begin{axis}[#1,
+  width=0.48\textwidth, height=4.8cm,
+  xlabel={Source separation $\delta$ (deg)},
   xmin=7, xmax=31, ymin=-0.04, ymax=1.06,
   xtick={8,12,15,18,22,30}, tick align=outside,
   grid=both, grid style={gray!16},
-  legend cell align=left,
-  legend style={font=\scriptsize, at={(0.97,0.05)}, anchor=south east, draw=gray!40,
-                fill=white, fill opacity=0.9, text opacity=1},
   every axis plot/.append style={line width=1pt, mark size=2.2pt},
-  title style={font=\small, yshift=-1mm}, title={Two-source resolution (single snapshot)},
-  label style={font=\footnotesize}, tick label style={font=\footnotesize},
-]
-\addplot[cBart, dashed, mark=square*]
-  coordinates {(8,0.01)(12,0.10)(15,0.46)(18,0.57)(22,0.69)(30,0.95)};
-\addplot[cMLP, mark=*, error bars/.cd, y dir=both, y explicit]
-  coordinates {(8,0.0)+-(0,0.0)(12,0.10)+-(0,0.01)(15,0.97)+-(0,0.01)(18,1.0)+-(0,0.0)(22,1.0)+-(0,0.0)(30,1.0)+-(0,0.0)};
-\addplot[cEquiv, mark=triangle*, error bars/.cd, y dir=both, y explicit]
-  coordinates {(8,0.0)+-(0,0.0)(12,0.67)+-(0,0.47)(15,1.0)+-(0,0.0)(18,1.0)+-(0,0.0)(22,1.0)+-(0,0.0)(30,1.0)+-(0,0.0)};
-\legend{Bartlett (classical), MLP+aug, Equivariant (ours)}
+  title style={font=\small, yshift=-1mm},
+  label style={font=\footnotesize}, tick label style={font=\footnotesize}]}
+\begin{tikzpicture}
+\resaxis{ylabel={Probability of resolution},
+  title={Uncorrelated sources ($T{=}10$)},
+  legend cell align=left, legend pos=south east,
+  legend style={font=\scriptsize, draw=gray!40, fill=white, fill opacity=0.9, text opacity=1}}
+\addplot[cBart, dashed, mark=square*] coordinates {(8,0.00)(12,0.02)(15,0.20)(18,0.70)(22,0.99)(30,1.00)};
+\addplot[cMusic, dashdotted, mark=diamond*] coordinates {(8,0.26)(12,0.99)(15,1.00)(18,1.00)(22,1.00)(30,1.00)};
+\addplot[cEquiv, mark=*, error bars/.cd, y dir=both, y explicit]
+  coordinates {(8,0.01)+-(0,0.00)(12,0.38)+-(0,0.15)(15,0.83)+-(0,0.11)(18,0.99)+-(0,0.01)(22,1.00)+-(0,0.00)(30,1.00)+-(0,0.00)};
+\legend{Bartlett, MUSIC, Equivariant (ours)}
+\end{axis}
+\end{tikzpicture}\hfill%
+\begin{tikzpicture}
+\resaxis{title={Coherent sources ($T{=}10$)}}
+\addplot[cBart, dashed, mark=square*] coordinates {(8,0.01)(12,0.14)(15,0.47)(18,0.57)(22,0.71)(30,0.97)};
+\addplot[cMusic, dashdotted, mark=diamond*] coordinates {(8,0.01)(12,0.13)(15,0.47)(18,0.57)(22,0.71)(30,0.92)};
+\addplot[cEquiv, mark=*, error bars/.cd, y dir=both, y explicit]
+  coordinates {(8,0.10)+-(0,0.06)(12,0.73)+-(0,0.23)(15,0.94)+-(0,0.08)(18,1.00)+-(0,0.00)(22,1.00)+-(0,0.00)(30,0.98)+-(0,0.01)};
 \end{axis}
 \end{tikzpicture}
-\caption{Two-source resolution probability versus separation, on OOD azimuths over
-three seeds. Both learned models resolve from about $15^\circ$, half the classical
-beamwidth; the equivariant model alone shows partial resolution at $12^\circ$, with
-an order of magnitude fewer parameters. Its ID and OOD curves coincide.}
-\label{fig:res}
-\end{figure}
+\caption{Two-source resolution probability versus separation ($T{=}10$ snapshots,
+OOD azimuths, three seeds). For uncorrelated sources (left) MUSIC is best. For
+coherent sources (right) MUSIC collapses to the beamformer, while the
+$C_M$-equivariant deconvolver, operating on the coherence-robust conventional
+spectrum, still resolves.}
+\label{fig:resms}
+\end{figure*}
 
 % =====================================================================
 \section{Discussion}
@@ -463,13 +421,11 @@ array task.
 
 \textbf{Scope and limits.} On the clean single-source task a classical beamformer
 already generalizes perfectly, so there the learned models inherit, rather than
-exceed, the classical behavior, and we claim no advantage on raw in-distribution
-accuracy. The two-source result is where learning exceeds classical, but it remains
-controlled: a single snapshot, equal-power narrowband sources, and a planar circular
-array. Multiple snapshots would admit a subspace baseline such as MUSIC, which a
-fair study should include, and the equivariant advantage over augmentation in the
-two-source case is confined to the hardest separation and to parameter count. We do
-not validate the quantum pillar of the broader program here.
+exceed, the classical behavior, and we claim no advantage on raw accuracy. The
+two-source value is specifically robustness to coherence: MUSIC remains the method of
+choice for uncorrelated sources, and we do not claim to displace it there. The study
+is otherwise controlled, with equal-power narrowband sources on a planar circular
+array, and we do not validate the quantum pillar of the broader program here.
 
 \textbf{Robustness to mutual coupling.} A UCA mutual-coupling matrix is circulant
 and commutes with the cyclic shift, so it preserves $C_M$ and the equivariant model
@@ -494,10 +450,9 @@ layers, would test whether the advantage persists beyond the cyclic case.
 On a UCA direction-finding task motivated by non-terrestrial networks, we studied
 how the array-rotation symmetry should enter a learned estimator. Equivariance and
 augmentation both reach the classical accuracy, but equivariance is more data
-efficient, far more stable, and lighter; and on a two-source single-snapshot task
-the learned models resolve sources about twice as close as the beamformer, the
-equivariant one most cheaply and alone at the hardest separation, which is where
-learning exceeds classical. We frame this as a controlled account of how a geometric
+efficient, far more stable, and lighter; and on a multi-snapshot two-source task the
+equivariant model is robust to source coherence, resolving coherent sources down to
+about half the beamwidth where the MUSIC subspace baseline collapses. We frame this as a controlled account of how a geometric
 symmetry should be exploited, and as a proof of concept for the learning pillar of a
 program in which geometric algebra is a single language for the quantum and learning
 layers of NTN and SAGIN.

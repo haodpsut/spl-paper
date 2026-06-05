@@ -249,32 +249,6 @@ smallest.
 % =====================================================================
 \section{Results}
 % =====================================================================
-\subsection{Single source: equivariance versus augmentation}
-Table \ref{tab:main} summarizes OOD and ID errors and Fig.~\ref{fig:eff} shows the
-data-efficiency study. Four observations stand out.
-
-\begin{table}[t]
-\caption{OOD azimuth error (deg, mean $\pm$ std over 5 seeds) at the smallest and
-largest training sizes, ID error at $N{=}5000$, and parameter count. ID is
-$[0,\pi)$, OOD is $[\pi,2\pi)$.}
-\label{tab:main}
-\centering
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lccccc@{}}
-\toprule
-Model & OOD $N{=}200$ & OOD $N{=}5000$ & ID $N{=}5000$ & Params \\
-\midrule
-MLP             & $130.0\!\pm\!1.6$ & $126.8\!\pm\!2.5$ & $1.20$ & 31.4k \\
-\;+aug          & $2.90\!\pm\!0.44$ & $1.23\!\pm\!0.01$ & $1.21$ & 31.4k \\
-Transformer     & $115.8\!\pm\!10$  & $117.3\!\pm\!17$  & $1.37$ & 17.3k \\
-\;+aug          & $90.7\!\pm\!34$   & $10.8\!\pm\!18$   & $27.9$ & 17.3k \\
-\textbf{Equivariant} & $\mathbf{1.88\!\pm\!0.62}$ & $\mathbf{1.21\!\pm\!0.01}$ & $\mathbf{1.19}$ & \textbf{10.8k} \\
-\midrule
-Bartlett        & $1.19$ & $1.19$ & $1.19$ & 0 \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \begin{figure}[t]
 \centering
@@ -312,6 +286,74 @@ $110^\circ$ at every $N$ (Table~\ref{tab:main}).}
 \label{fig:eff}
 \end{figure}
 
+\begin{figure*}[t]
+\centering
+\newcommand{\resaxis}[1]{%
+\begin{axis}[#1,
+  width=0.48\textwidth, height=4.8cm,
+  xlabel={Source separation $\delta$ (deg)},
+  xmin=7, xmax=31, ymin=-0.04, ymax=1.06,
+  xtick={8,12,15,18,22,30}, tick align=outside,
+  grid=both, grid style={gray!16},
+  every axis plot/.append style={line width=1pt, mark size=2.2pt},
+  title style={font=\small, yshift=-1mm},
+  label style={font=\footnotesize}, tick label style={font=\footnotesize}]}
+\begin{tikzpicture}
+\resaxis{ylabel={Probability of resolution},
+  title={Uncorrelated sources ($T{=}10$)},
+  legend cell align=left, legend pos=south east,
+  legend style={font=\scriptsize, draw=gray!40, fill=white, fill opacity=0.9, text opacity=1}}
+\addplot[cBart, dashed, mark=square*] coordinates {(8,0.00)(12,0.02)(15,0.20)(18,0.70)(22,0.99)(30,1.00)};
+\addplot[cMusic, dashdotted, mark=diamond*] coordinates {(8,0.26)(12,0.99)(15,1.00)(18,1.00)(22,1.00)(30,1.00)};
+\addplot[cEquiv, mark=*, error bars/.cd, y dir=both, y explicit]
+  coordinates {(8,0.01)+-(0,0.00)(12,0.38)+-(0,0.15)(15,0.83)+-(0,0.11)(18,0.99)+-(0,0.01)(22,1.00)+-(0,0.00)(30,1.00)+-(0,0.00)};
+\legend{Bartlett, MUSIC, Equivariant (ours)}
+\end{axis}
+\end{tikzpicture}\hfill%
+\begin{tikzpicture}
+\resaxis{title={Coherent sources ($T{=}10$)}}
+\addplot[cBart, dashed, mark=square*] coordinates {(8,0.01)(12,0.14)(15,0.47)(18,0.57)(22,0.71)(30,0.97)};
+\addplot[cMusic, dashdotted, mark=diamond*] coordinates {(8,0.01)(12,0.13)(15,0.47)(18,0.57)(22,0.71)(30,0.92)};
+\addplot[cEquiv, mark=*, error bars/.cd, y dir=both, y explicit]
+  coordinates {(8,0.10)+-(0,0.06)(12,0.73)+-(0,0.23)(15,0.94)+-(0,0.08)(18,1.00)+-(0,0.00)(22,1.00)+-(0,0.00)(30,0.98)+-(0,0.01)};
+\end{axis}
+\end{tikzpicture}
+\caption{Two-source resolution probability versus separation ($T{=}10$ snapshots,
+OOD azimuths, three seeds). For uncorrelated sources (left) MUSIC is best. For
+coherent sources (right) MUSIC collapses to the beamformer, while the
+$C_M$-equivariant deconvolver, operating on the coherence-robust conventional
+spectrum, still resolves.}
+\label{fig:resms}
+\end{figure*}
+
+\subsection{Single source: equivariance versus augmentation}
+Table \ref{tab:main} summarizes OOD and ID errors and Fig.~\ref{fig:eff} shows the
+data-efficiency study. Four observations stand out.
+
+\begin{table}[t]
+\caption{OOD azimuth error (deg, mean $\pm$ std over 5 seeds) at the smallest and
+largest training sizes, ID error at $N{=}5000$, and parameter count. ID is
+$[0,\pi)$, OOD is $[\pi,2\pi)$.}
+\label{tab:main}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+ & \multicolumn{2}{c}{OOD error} & ID & \\
+\cmidrule(lr){2-3}
+Model & $N{=}200$ & $N{=}5000$ & $N{=}5000$ & Params \\
+\midrule
+MLP             & $130.0\!\pm\!1.6$ & $126.8\!\pm\!2.5$ & $1.20$ & 31.4k \\
+\;+aug          & $2.90\!\pm\!0.44$ & $1.23\!\pm\!0.01$ & $1.21$ & 31.4k \\
+Transformer     & $115.8\!\pm\!10$  & $117.3\!\pm\!17$  & $1.37$ & 17.3k \\
+\;+aug          & $90.7\!\pm\!34$   & $10.8\!\pm\!18$   & $27.9$ & 17.3k \\
+\textbf{Equivariant} & $\mathbf{1.88\!\pm\!0.62}$ & $\mathbf{1.21\!\pm\!0.01}$ & $\mathbf{1.19}$ & \textbf{10.8k} \\
+\midrule
+Bartlett        & $1.19$ & $1.19$ & $1.19$ & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 First, ignoring the symmetry fails. The symmetry-agnostic MLP and Transformer stay
 above $110^\circ$ on OOD azimuths at every training size and SNR (Table
@@ -364,46 +406,6 @@ resolves ($0.94$ at $15^\circ$ and $0.73$ at $12^\circ$). The learned model thus
 complements the subspace method: it does not displace MUSIC where MUSIC is strong,
 but it is robust to the source coherence, common in specular multipath, that defeats
 it. Its in- and out-of-distribution curves coincide.
-
-\begin{figure*}[t]
-\centering
-\newcommand{\resaxis}[1]{%
-\begin{axis}[#1,
-  width=0.48\textwidth, height=4.8cm,
-  xlabel={Source separation $\delta$ (deg)},
-  xmin=7, xmax=31, ymin=-0.04, ymax=1.06,
-  xtick={8,12,15,18,22,30}, tick align=outside,
-  grid=both, grid style={gray!16},
-  every axis plot/.append style={line width=1pt, mark size=2.2pt},
-  title style={font=\small, yshift=-1mm},
-  label style={font=\footnotesize}, tick label style={font=\footnotesize}]}
-\begin{tikzpicture}
-\resaxis{ylabel={Probability of resolution},
-  title={Uncorrelated sources ($T{=}10$)},
-  legend cell align=left, legend pos=south east,
-  legend style={font=\scriptsize, draw=gray!40, fill=white, fill opacity=0.9, text opacity=1}}
-\addplot[cBart, dashed, mark=square*] coordinates {(8,0.00)(12,0.02)(15,0.20)(18,0.70)(22,0.99)(30,1.00)};
-\addplot[cMusic, dashdotted, mark=diamond*] coordinates {(8,0.26)(12,0.99)(15,1.00)(18,1.00)(22,1.00)(30,1.00)};
-\addplot[cEquiv, mark=*, error bars/.cd, y dir=both, y explicit]
-  coordinates {(8,0.01)+-(0,0.00)(12,0.38)+-(0,0.15)(15,0.83)+-(0,0.11)(18,0.99)+-(0,0.01)(22,1.00)+-(0,0.00)(30,1.00)+-(0,0.00)};
-\legend{Bartlett, MUSIC, Equivariant (ours)}
-\end{axis}
-\end{tikzpicture}\hfill%
-\begin{tikzpicture}
-\resaxis{title={Coherent sources ($T{=}10$)}}
-\addplot[cBart, dashed, mark=square*] coordinates {(8,0.01)(12,0.14)(15,0.47)(18,0.57)(22,0.71)(30,0.97)};
-\addplot[cMusic, dashdotted, mark=diamond*] coordinates {(8,0.01)(12,0.13)(15,0.47)(18,0.57)(22,0.71)(30,0.92)};
-\addplot[cEquiv, mark=*, error bars/.cd, y dir=both, y explicit]
-  coordinates {(8,0.10)+-(0,0.06)(12,0.73)+-(0,0.23)(15,0.94)+-(0,0.08)(18,1.00)+-(0,0.00)(22,1.00)+-(0,0.00)(30,0.98)+-(0,0.01)};
-\end{axis}
-\end{tikzpicture}
-\caption{Two-source resolution probability versus separation ($T{=}10$ snapshots,
-OOD azimuths, three seeds). For uncorrelated sources (left) MUSIC is best. For
-coherent sources (right) MUSIC collapses to the beamformer, while the
-$C_M$-equivariant deconvolver, operating on the coherence-robust conventional
-spectrum, still resolves.}
-\label{fig:resms}
-\end{figure*}
 
 % =====================================================================
 \section{Discussion}

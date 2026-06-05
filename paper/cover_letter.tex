@@ -40,11 +40,11 @@ accuracy on the clean single-source task, but equivariance is more data efficien
 more stable across seeds, and lighter. This controlled equivariance-versus-augmentation
 comparison for direction finding is not reported in a literature that obtains
 robustness by training over perturbations.
-\item On a two-source single-snapshot task the learned models resolve sources about
-twice as close as the classical Bartlett beamformer, and the equivariant model alone
-resolves the hardest separation, with an order of magnitude fewer parameters than the
-augmented baseline. This is where learning exceeds, rather than inherits, classical
-behavior.
+\item On a multi-snapshot two-source task we compare against MUSIC. MUSIC is best for
+uncorrelated sources, but it relies on the signal subspace and collapses for coherent
+sources, where the equivariant model, deconvolving the coherence-robust conventional
+spectrum, still resolves down to about half the beamwidth. The learned model thus
+complements the subspace method rather than displacing it.
 \end{itemize}
 
 The manuscript fits the scope and concise format of Signal Processing Letters: a

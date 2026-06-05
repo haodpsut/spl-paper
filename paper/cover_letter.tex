@@ -3,16 +3,17 @@
 \documentclass[11pt]{letter}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
-\usepackage[margin=2cm]{geometry}
+\usepackage[margin=1.8cm]{geometry}
 \usepackage{parskip}
 \usepackage{enumitem}
 \usepackage{hyperref}
 \hypersetup{hidelinks}
-\setlength{\parskip}{4pt}
+\setlength{\parskip}{3pt}
 
-\signature{Do Phuc Hao}
-\address{Do Phuc Hao\\ Faculty of Information Technology\\ Da Nang Architecture University\\
-Da Nang, Vietnam\\ haodp@dau.edu.vn}
+\signature{Truong Duy Dinh\\ Corresponding author}
+\address{Truong Duy Dinh\\ Faculty of Information Security\\
+Posts and Telecommunications Institute of Technology\\
+Ha Noi, Vietnam\\ duydt@ptit.edu.vn}
 
 \begin{document}
 
@@ -20,9 +21,10 @@ Da Nang, Vietnam\\ haodp@dau.edu.vn}
 
 \opening{Dear Editor-in-Chief,}
 
-I am pleased to submit the manuscript titled ``Geometric Equivariance as an
-Inductive Bias for Orientation-Robust Direction Finding in Non-Terrestrial
-Networks'' for consideration as a Letter in IEEE Signal Processing Letters.
+On behalf of both authors, we are pleased to submit the manuscript titled
+``Geometric Equivariance as an Inductive Bias for Orientation-Robust Direction
+Finding in Non-Terrestrial Networks'' for consideration as a Letter in IEEE Signal
+Processing Letters.
 
 The work studies how a known geometric symmetry of a sensor array, the rotation of
 the array, should enter a learned direction-of-arrival estimator. On a uniform
@@ -30,7 +32,7 @@ circular array, azimuth rotation reduces exactly to a cyclic shift of the sensor
 index, the cyclic group $C_M$, which makes the symmetry explicit and lets us compare
 three options: ignore it, augment for it with random cyclic shifts, or build it into
 a $C_M$-equivariant circular-convolution network. The main findings are concise and,
-to my knowledge, new for radio-frequency array processing:
+to our knowledge, new for radio-frequency array processing:
 
 \begin{itemize}[leftmargin=1.4em,itemsep=2pt,topsep=2pt]
 \item Built-in equivariance and cyclic-shift augmentation both reach the classical
@@ -46,21 +48,24 @@ behavior.
 \end{itemize}
 
 The manuscript fits the scope and concise format of Signal Processing Letters: a
-clear, reproducible signal-processing result motivated by non-terrestrial networks,
-where antenna arrays sit on platforms whose orientation varies. Prior deep-learning
-direction-of-arrival methods use linear arrays and obtain robustness by data
-augmentation rather than by an architectural symmetry constraint, and the only
-genuinely equivariant direction-finding networks are acoustic, so the cyclic-group
-equivariant formulation on a circular array, the equivariance-versus-augmentation
-comparison, and the orientation-generalization study are not pre-empted by existing
-work.
+clear, reproducible result motivated by non-terrestrial networks, where antenna
+arrays sit on platforms whose orientation varies. Prior deep-learning
+direction-of-arrival methods use linear arrays and obtain robustness by augmentation
+rather than by an architectural symmetry constraint, and the only genuinely
+equivariant direction-finding networks are acoustic, so the cyclic-group equivariant
+formulation on a circular array, the equivariance-versus-augmentation comparison, and
+the orientation-generalization study are not pre-empted by existing work.
 
-I confirm that this manuscript is original, has not been published before, and is not
-under consideration for publication elsewhere. There is a single author and there are
-no conflicts of interest to declare. All numbers and figures are produced by
-self-contained Python scripts that are released for full reproducibility.
+We confirm that this manuscript is original, has not been published before, and is
+not under consideration for publication elsewhere. The manuscript has two authors,
+Do Phuc Hao (Da Nang Architecture University) and Truong Duy Dinh (Posts and
+Telecommunications Institute of Technology), the latter serving as corresponding
+author, and there are no conflicts of interest to declare. All numbers and figures
+are produced by self-contained Python scripts that are released for full
+reproducibility.
 
-Thank you for your time and consideration. I look forward to the reviewers' feedback.
+Thank you for your time and consideration. We look forward to the reviewers'
+feedback.
 
 \closing{Sincerely,}
 

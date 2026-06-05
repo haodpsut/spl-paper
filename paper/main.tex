@@ -33,10 +33,11 @@
 Orientation-Robust Direction Finding in\\
 Non-Terrestrial Networks}
 
-\author{\IEEEauthorblockN{Do Phuc Hao}
-\IEEEauthorblockA{Faculty of Information Technology\\
-Da Nang Architecture University, Da Nang, Vietnam\\
-haodp@dau.edu.vn}}
+\author{\IEEEauthorblockN{Do Phuc Hao\IEEEauthorrefmark{1} and Truong Duy Dinh\IEEEauthorrefmark{2}}
+\IEEEauthorblockA{\IEEEauthorrefmark{1}Faculty of Information Technology, Da Nang Architecture University, Da Nang, Vietnam\\
+\IEEEauthorrefmark{2}Faculty of Information Security, Posts and Telecommunications Institute of Technology, Ha Noi, Vietnam\\
+Email: haodp@dau.edu.vn, duydt@ptit.edu.vn\\
+(Corresponding author: Truong Duy Dinh.)}}
 
 \maketitle
 
@@ -179,35 +180,19 @@ exceeds rather than inherits the classical behavior.
 % =====================================================================
 \section{Background and Positioning}
 % =====================================================================
-\subsection{Geometric algebra as a shared language}
-Geometric algebra builds on the geometric product $ab = a\cdot b + a\wedge b$,
-which combines the scalar inner product and the bivector outer product. Rotations
-in any dimension are represented by rotors $R=\exp(-\mathbf{B}\,\theta/2)$ acting
-through the two-sided map $v\mapsto R\,v\,\tilde{R}$. Two branches of this
-formalism are mature. In wireless and radar signal processing, GA has long been
-used for conformal-array pattern analysis, distortionless co-polarization
-beamforming, and DOA estimation on vector-sensor arrays, with reported reductions
-in computational and memory cost relative to long-vector and Euler-angle
-formulations \cite{zou2011,meng2017,wang2021}. In quantum theory, the Pauli
-matrices are the basis vectors of $\mathrm{Cl}(3,0)$, a qubit is a rotor, and the
-multiparticle spacetime algebra expresses qubit states and unitary gates, together
-with universality, as real multivector operations \cite{haveldoran2000,doran1996,cafaro2011,cafaro2024}.
-
-\subsection{Equivariant learning, classical and quantum}
-On the learning side, Clifford neural layers embed data as multivectors and respect
-the geometric product \cite{clifford2022,cliffordlayers}, and the geometric algebra
-transformer uses a projective Clifford algebra as its internal representation to be
-equivariant to the Euclidean group $\mathrm{E}(3)$ \cite{gatr2023}. The same
-symmetry idea appears on the quantum side: group-invariant and equivariant quantum
-neural networks respect the symmetry of the data and thereby mitigate trainability
-and generalization problems such as barren plateaus
-\cite{larocca2022,nguyen2024}. Equivariance is thus a bridge that appears on both
-the classical and the quantum side, yet no prior work, to our knowledge, uses GA
-as a single language across both layers for NTN or SAGIN. We do not close that gap
-here; we validate the classical half of it on a concrete network task and report
-the result without overclaiming. Our equivariant model is the discrete rotation
-instance of this principle, which heavier Clifford and $\mathrm{E}(3)$-equivariant
-architectures generalize.
+\subsection{Geometric algebra and equivariant learning}
+Geometric algebra (GA), the real Clifford algebra of Euclidean space, writes
+rotations as rotors and unifies the tools of array signal processing, where it
+serves conformal-array beamforming and DOA \cite{zou2011,meng2017,wang2021}, and of
+quantum theory, where a qubit is a rotor and gates are real multivector operations
+\cite{haveldoran2000,doran1996,cafaro2011,cafaro2024}. On the learning side,
+Clifford neural layers and the geometric algebra transformer make GA the substrate
+of $\mathrm{E}(3)$-equivariant networks \cite{clifford2022,cliffordlayers,gatr2023},
+and the same symmetry idea drives group-equivariant quantum neural networks
+\cite{larocca2022,nguyen2024}. Equivariance is thus a bridge on both the classical
+and the quantum side; no prior work, to our knowledge, uses GA across both for NTN
+or SAGIN, and we validate only its classical half here. Our model is the
+discrete-rotation ($C_M$) instance of this principle.
 
 \subsection{Learning-based DOA and the gap}
 Learned DOA estimation was established by grid-based classifiers and regressors on
@@ -250,33 +235,9 @@ a_i\!\big(\phi + \tfrac{2\pi}{M}\big)
 \label{eq:shift}
 \end{equation}
 Rotating the source azimuth (equivalently, rotating the array about its axis) by
-one inter-sensor angle is exactly a cyclic shift of the sensor index. Azimuth
-rotation is therefore the cyclic group $C_M$ acting on the sensor axis. Figure
-\ref{fig:uca} illustrates this.
-
-\begin{figure}[t]
-\centering
-\begin{tikzpicture}[scale=0.92, >=Stealth, font=\footnotesize]
-  \draw[gray!50] (0,0) circle (1.5);
-  \foreach \k in {0,...,7}{
-    \fill[black] (\k*45:1.5) circle (1.4pt);
-  }
-  \fill[orange!80!black] (45:1.5) circle (2.4pt);
-  \node[orange!70!black] at (45:1.95) {$\gamma_i$};
-  % incoming wave direction
-  \draw[->, blue!60!black, thick] (130:2.5) -- (130:1.0);
-  \node[blue!60!black] at (133:2.75) {$\phi$};
-  % rotation hint
-  \draw[->, orange!80!black] (52:1.78) arc (52:80:1.78);
-  \node[orange!80!black] at (66:2.1) {$\tfrac{2\pi}{M}$};
-  \node[align=center, text width=4.2cm] at (0,-2.35)
-    {Azimuth rotation by $2\pi/M$ $\equiv$ cyclic shift of sensors (group $C_M$).};
-\end{tikzpicture}
-\caption{Uniform circular array. By \eqref{eq:shift}, rotating the source azimuth
-by one inter-sensor angle permutes the sensor responses cyclically, so a circular
-convolution over the sensors is equivariant to array rotation.}
-\label{fig:uca}
-\end{figure}
+one inter-sensor angle is exactly a cyclic shift of the sensor index, so azimuth
+rotation is the cyclic group $C_M$ acting on the sensor axis, and a circular
+convolution over the sensors is equivariant to it.
 
 \subsection{Models}
 All learned models map the two-channel real signal $x\in\mathbb{R}^{2\times M}$
@@ -339,8 +300,8 @@ smallest.
 \section{Results}
 % =====================================================================
 \subsection{Single source: equivariance versus augmentation}
-Table \ref{tab:main} summarizes OOD and ID errors, and Figs.~\ref{fig:eff} and
-\ref{fig:snr} show the data-efficiency and SNR studies. Four observations stand out.
+Table \ref{tab:main} summarizes OOD and ID errors and Fig.~\ref{fig:eff} shows the
+data-efficiency study. Four observations stand out.
 
 \begin{table}[t]
 \caption{OOD azimuth error (deg, mean $\pm$ std over 5 seeds) at the smallest and
@@ -401,39 +362,6 @@ $110^\circ$ at every $N$ (Table~\ref{tab:main}).}
 \label{fig:eff}
 \end{figure}
 
-\begin{figure}[t]
-\centering
-\begin{tikzpicture}
-\begin{axis}[
-  width=\columnwidth, height=5.4cm,
-  xlabel={SNR (dB)}, ylabel={OOD azimuth error (deg)},
-  xmin=-1.5, xmax=21.5, ymode=log, ymin=0.3, ymax=120,
-  xtick={0,5,10,15,20}, tick align=outside,
-  grid=both, grid style={gray!16},
-  legend cell align=left,
-  legend style={font=\scriptsize, at={(0.97,0.95)}, anchor=north east, draw=gray!40,
-                fill=white, fill opacity=0.9, text opacity=1},
-  every axis plot/.append style={line width=1pt, mark size=2.2pt},
-  title style={font=\small, yshift=-1mm},
-  title={SNR robustness ($N{=}1000$)},
-  label style={font=\footnotesize}, tick label style={font=\footnotesize},
-]
-\addplot[cMLP, mark=*, error bars/.cd, y dir=both, y explicit]
-  coordinates {(0,4.60)+-(0,0.07)(5,2.48)+-(0,0.12)(10,1.90)+-(0,0.16)(15,1.33)+-(0,0.10)(20,0.92)+-(0,0.12)};
-\addplot[cTrans, mark=square*, error bars/.cd, y dir=both, y explicit]
-  coordinates {(0,39.96)+-(0,36.72)(5,9.22)+-(0,1.66)(10,4.83)+-(0,0.61)(15,3.11)+-(0,0.47)(20,2.43)+-(0,0.15)};
-\addplot[cEquiv, mark=triangle*, error bars/.cd, y dir=both, y explicit]
-  coordinates {(0,4.70)+-(0,0.11)(5,2.23)+-(0,0.03)(10,1.27)+-(0,0.01)(15,0.87)+-(0,0.15)(20,0.78)+-(0,0.28)};
-\addplot[cBart, dashed, line width=1pt, mark=none]
-  coordinates {(0,3.98)(5,2.02)(10,1.17)(15,0.66)(20,0.37)};
-\legend{MLP+aug, Transformer+aug, Equivariant (ours), Bartlett}
-\end{axis}
-\end{tikzpicture}
-\caption{SNR robustness at $N{=}1000$ (log scale). The equivariant model tracks the
-classical beamformer across SNR and is the best learned model; the augmented
-baselines lag, the Transformer markedly so and with high variance at low SNR.}
-\label{fig:snr}
-\end{figure}
 
 First, ignoring the symmetry fails. The symmetry-agnostic MLP and Transformer stay
 above $110^\circ$ on OOD azimuths at every training size and SNR (Table
@@ -452,8 +380,9 @@ $2.90^\circ$, and it is far more stable: its standard deviation stays near
 $0.01^\circ$ to $0.6^\circ$, whereas the augmented Transformer is erratic, with
 standard deviations above $30^\circ$ and a seed that fails to converge (its ID error
 at $N{=}5000$ is $27.9^\circ$). It also uses one third of the MLP parameters and
-needs no augmentation schedule. Across SNR (Fig.~\ref{fig:snr}) the equivariant
-model tracks the beamformer and stays ahead of the augmented baselines.
+needs no augmentation schedule. Across SNR from $0$ to $20$\,dB (in the released
+results) the equivariant model tracks the beamformer and stays ahead of the
+augmented baselines.
 
 Fourth, the classical Bartlett beamformer matches or beats every learned model on
 this clean single-source task, at zero parameters. On this probe the learned models
@@ -542,44 +471,36 @@ fair study should include, and the equivariant advantage over augmentation in th
 two-source case is confined to the hardest separation and to parameter count. We do
 not validate the quantum pillar of the broader program here.
 
-\textbf{Robustness to mutual coupling.} On a UCA the mutual-coupling matrix is
-circulant and commutes with the cyclic shift, so coupling preserves the $C_M$
-symmetry. The equivariant model is therefore correctly specified under coupling:
-its OOD error stays near $1.2^\circ$ for reciprocal circulant coupling up to a
-nearest-neighbour magnitude of $0.4$, matching the coupling-aware classical
-beamformer. Prior robust DOA networks reach coupling robustness by training over
-sampled perturbations \cite{liu2018,sdoanet2024}, the augmentation route we find
-less stable; here the same robustness follows from the architecture. We note that
-reciprocal coupling does not bias single-source DOA, so this regime is a robustness
-check rather than a setting where learning beats classical; multi-source resolution
-is the natural place to probe the latter.
+\textbf{Robustness to mutual coupling.} A UCA mutual-coupling matrix is circulant
+and commutes with the cyclic shift, so it preserves $C_M$ and the equivariant model
+stays correctly specified: its OOD error remains near $1.2^\circ$ for reciprocal
+coupling up to nearest-neighbour magnitude $0.4$, matching the coupling-aware
+beamformer. Prior robust DOA networks instead train over sampled perturbations
+\cite{liu2018,sdoanet2024}, the augmentation route we find less stable. Reciprocal
+coupling does not bias single-source DOA, so this is a robustness check, not a
+beats-classical regime.
 
-\textbf{Toward a unified GA program for NTN and SAGIN.} The same equivariance that
-helps here on the classical side has a quantum counterpart in group-equivariant
-quantum neural networks, and GA expresses both with one set of operators. A
-unified treatment that spans the quantum and the learning layers for NTN and
-SAGIN, together with grounding in standardized non-terrestrial channel models such
-as 3GPP TR 38.811, is the natural next step. Extending the probe to the conformal
-arrays and full $\mathrm{SO}(3)$ orientations of real platforms, using Clifford and
-$\mathrm{E}(3)$-equivariant layers, would test whether the present advantage
-persists beyond the cyclic case.
+\textbf{Toward a unified GA program.} The same equivariance has a quantum
+counterpart in group-equivariant quantum neural networks, which GA expresses with
+the same operators, so a treatment spanning the quantum and learning layers for NTN
+and SAGIN, grounded in standardized channel models such as 3GPP TR 38.811, is a
+natural next step. Extending the probe to conformal arrays and full
+$\mathrm{SO}(3)$ orientations, using Clifford and $\mathrm{E}(3)$-equivariant
+layers, would test whether the advantage persists beyond the cyclic case.
 
 % =====================================================================
 \section{Conclusion}
 % =====================================================================
-We studied, on a controlled UCA direction-finding task motivated by non-terrestrial
-networks, how a known array-rotation symmetry should enter a learned estimator.
-Over five seeds and across training size and SNR, cyclic-shift augmentation and a
-$C_M$-equivariant circular-convolution network both reach the classical accuracy at
-large data, but the equivariant model is more data efficient, far more stable, and
-uses the fewest parameters, while a classical beamformer matches all learned models
-on this clean task. On a two-source single-snapshot task the learned models resolve
-sources about twice as close as the beamformer, the equivariant one most cheaply and
-alone at the hardest separation, which is where learning exceeds classical. We frame
-this as a controlled account of how a geometric symmetry should be exploited, and as
-a proof of concept for the machine-learning pillar of a broader vision in which
-geometric algebra is a single language for both the quantum and the learning layers
-of NTN and SAGIN.
+On a UCA direction-finding task motivated by non-terrestrial networks, we studied
+how the array-rotation symmetry should enter a learned estimator. Equivariance and
+augmentation both reach the classical accuracy, but equivariance is more data
+efficient, far more stable, and lighter; and on a two-source single-snapshot task
+the learned models resolve sources about twice as close as the beamformer, the
+equivariant one most cheaply and alone at the hardest separation, which is where
+learning exceeds classical. We frame this as a controlled account of how a geometric
+symmetry should be exploited, and as a proof of concept for the learning pillar of a
+program in which geometric algebra is a single language for the quantum and learning
+layers of NTN and SAGIN.
 
 % =====================================================================
 \section*{Reproducibility}
@@ -587,6 +508,11 @@ The data generators, the models, the cyclic-shift augmentation, and the evaluati
 for both the single-source and two-source studies are released as self-contained
 Python scripts at \url{https://github.com/haodpsut/spl-paper}; all numbers in this
 letter are produced by one run over fixed seeds.
+
+% =====================================================================
+\section*{Acknowledgment}
+This work has been sponsored by the scientific research from Posts and
+Telecommunications Institute of Technology, Vietnam.
 
 \begin{thebibliography}{00}
 \bibitem{sagin2018} J. Liu \emph{et al.}, ``Space-air-ground integrated network: A survey,'' \emph{IEEE Commun. Surveys Tuts.}, vol. 20, no. 4, pp. 2714--2741, 2018.

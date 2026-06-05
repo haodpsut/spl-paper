@@ -2,8 +2,10 @@
 
 Code and manuscript for the IEEE Signal Processing Letters submission
 *Geometric Equivariance as an Inductive Bias for Orientation-Robust Direction
-Finding in Non-Terrestrial Networks* (single author: Phuc Hao Do, Da Nang
-Architecture University).
+Finding in Non-Terrestrial Networks*.
+
+Authors: **Do Phuc Hao** (Da Nang Architecture University) and **Truong Duy Dinh**
+(Posts and Telecommunications Institute of Technology, corresponding author).
 
 On a uniform circular array (UCA), rotating the source azimuth by one inter-sensor
 angle equals a cyclic shift of the sensor index, the group `C_M`. We study how this
@@ -68,3 +70,8 @@ The two-source study is single-snapshot, equal-power, narrowband, on a planar UC
 a multi-snapshot setting would admit a subspace baseline such as MUSIC. The
 equivariant advantage over augmentation in the two-source case is confined to the
 hardest separation and to parameter count. See the paper for the full discussion.
+
+## Acknowledgment
+
+This work has been sponsored by the scientific research from Posts and
+Telecommunications Institute of Technology, Vietnam.
